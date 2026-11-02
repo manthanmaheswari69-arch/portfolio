@@ -110,7 +110,7 @@
     <h3 class="group">Networking (CCNA 200-301 training)</h3>
     <ul class="tags">
       <li>MikroTik</li><li>PPPoE</li><li>FTTH</li><li>PtP / PtMP wireless</li><li>VLAN, VTP, STP</li><li>LACP / PAgP</li>
-      <li>Static, RIP, OSPF</li><li>Firewall &amp; NAT</li><li>VPN</li><li>Bandwidth management</li><li>ACLs</li><li>AAA (TACACS+, RADIUS)</li><li>TR-069 (ACS / CPE management)</li><li>SSH</li><li>IPv6</li><li>Cisco router &amp; switch configuration</li>
+      <li>Static, RIP, OSPF</li><li>Firewall &amp; NAT</li><li>VPN</li><li>Bandwidth management</li><li>ACLs</li><li>AAA (TACACS+, RADIUS)</li><li>TR-069 (ACS / CPE management)</li><li>MikroTik Hotspot</li><li>SSH</li><li>IPv6</li><li>Cisco router &amp; switch configuration</li>
     </ul>
     <h3 class="group">Languages</h3>
     <ul class="tags"><li>English</li><li>Hindi</li><li>Gujarati</li></ul>
@@ -141,31 +141,44 @@
   // ISP topology: internet → core → distribution → access, with packets flowing on every link
   const cv = document.getElementById('topo'), g = cv.getContext('2d');
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const N = { // x,y as fractions of the screen; kept to the right so the hero text stays clear
-    net:  { x:.72, y:.10, t:'cloud',    l:'INTERNET' },
-    core: { x:.72, y:.25, t:'mikrotik', l:'MIKROTIK · BORDER' },
-    bras: { x:.72, y:.41, t:'mikrotik', l:'MIKROTIK · PPPoE' },
-    rad:  { x:.89, y:.34, t:'server',   l:'RADIUS · BILLING' },
-    acs:  { x:.89, y:.48, t:'server',   l:'TR-069 ACS' },
-    agg:  { x:.72, y:.56, t:'switch',   l:'AGG SWITCH · VLAN' },
-    olt:  { x:.84, y:.66, t:'switch',   l:'OLT' },
-    spl:  { x:.84, y:.78, t:'splitter', l:'SPLITTER' },
-    o1:   { x:.68, y:.91, t:'home',     l:'ONT' },
-    o2:   { x:.755,y:.91, t:'home',     l:'ONT' },
-    o3:   { x:.83, y:.91, t:'home',     l:'ONT' },
-    o4:   { x:.905,y:.91, t:'home',     l:'ONT' },
-    o5:   { x:.98, y:.91, t:'home',     l:'ONT' },
-    ptp:  { x:.60, y:.67, t:'tower',    l:'PtP BACKHAUL' },
-    sec:  { x:.50, y:.78, t:'tower',    l:'PtMP SECTOR' },
-    c1:   { x:.44, y:.91, t:'home',     l:'CPE' },
-    c2:   { x:.58, y:.91, t:'home',     l:'CPE' },
+  const N = { // x,y as fractions of a desktop screen; top-left stays clear for the hero text
+    net:  { x:.79, y:.10, t:'cloud',    l:'ISP 1 · MAIN WAN' },
+    isp2: { x:.66, y:.12, t:'cloud',    l:'ISP 2 · BACKUP WAN' },
+    ll:   { x:.955,y:.62, t:'office',   l:'LEASED LINE' },
+    core: { x:.79, y:.25, t:'mikrotik', l:'MIKROTIK · BORDER' },
+    bras: { x:.79, y:.41, t:'mikrotik', l:'MIKROTIK · PPPoE' },
+    rad:  { x:.91, y:.34, t:'server',   l:'RADIUS · BILLING' },
+    acs:  { x:.91, y:.48, t:'server',   l:'TR-069 ACS' },
+    olt:  { x:.82, y:.58, t:'switch',   l:'OLT' },
+    spl:  { x:.875,y:.75, t:'splitter', l:'SPLITTER' },
+    o1:   { x:.76, y:.91, t:'home',     l:'ONT' },
+    o2:   { x:.815,y:.91, t:'home',     l:'ONT' },
+    o3:   { x:.87, y:.91, t:'home',     l:'ONT' },
+    o4:   { x:.925,y:.91, t:'home',     l:'ONT' },
+    o5:   { x:.977,y:.91, t:'home',     l:'ONT' },
+    agg:  { x:.685,y:.56, t:'mikrotik', l:'MIKROTIK · CLIENT' },
+    olt2: { x:.745,y:.67, t:'switch',   l:'OLT' },
+    u1:   { x:.71, y:.80, t:'home',     l:'ONT' },
+    u2:   { x:.78, y:.80, t:'home',     l:'ONT' },
+    ptp:  { x:.65, y:.69, t:'tower',    l:'PtP BACKHAUL' },
+    sec:  { x:.605,y:.80, t:'tower',    l:'PtMP SECTOR' },
+    c1:   { x:.59, y:.91, t:'home',     l:'CPE' },
+    c2:   { x:.665,y:.91, t:'home',     l:'CPE' },
+    hs:   { x:.46, y:.66, t:'mikrotik', l:'MIKROTIK · HOTSPOT' },
+    hsw:  { x:.46, y:.75, t:'switch',   l:'SWITCH' },
+    ap:   { x:.46, y:.84, t:'ap',       l:'AP · OPEN WiFi' },
+    ph:   { x:.385,y:.94, t:'phone',    l:'PHONE' },
+    lp:   { x:.46, y:.94, t:'laptop',   l:'LAPTOP' },
+    tb:   { x:.535,y:.94, t:'tablet',   l:'iPAD' },
   };
-  // subscriber traffic: customers → access (fibre or wireless) → aggregation → BRAS (auth via RADIUS) → border → internet
-  const E = [['net','core'],['core','bras'],['bras','rad'],['bras','acs'],['bras','agg'],['agg','olt'],['olt','spl'],['spl','o1'],['spl','o2'],['spl','o3'],['spl','o4'],['spl','o5'],
-             ['agg','ptp'],['ptp','sec',1],['sec','c1',1],['sec','c2',1]]; // 1 = wireless link
+  // subscriber traffic: fibre users → OLT → MikroTik PPPoE (auth via RADIUS) → border → internet;
+  // a second MikroTik takes internet from the PPPoE MikroTik and serves its own LAN + wireless users
+  const E = [['net','core'],['isp2','core',2],['core','bras'],['bras','ll'],['bras','rad'],['bras','acs'],['bras','olt'],['bras','agg'],['agg','olt2'],['olt2','u1'],['olt2','u2'],['olt','spl'],['spl','o1'],['spl','o2'],['spl','o3'],['spl','o4'],['spl','o5'],
+             ['agg','ptp'],['ptp','sec',1],['sec','c1',1],['sec','c2',1],
+             ['bras','hs'],['hs','hsw'],['hsw','ap'],['ap','ph',1],['ap','lp',1],['ap','tb',1]]; // 1 = wireless link, 2 = backup WAN (failover)
   const P = E.flatMap((e, i) => [0, 1, 2].map(() => ({ i, t: Math.random(), v: .002 + Math.random() * .004, up: Math.random() < .4 })));
   let W, H, S, narrow;
-  const pos = n => [(narrow ? .04 + (n.x - .4) / .6 * .92 : .6 + (n.x - .46) / .51 * .37) * W, n.y * H];
+  const pos = n => [(narrow ? .05 + (n.x - .34) / .64 * .9 : n.x) * W, n.y * H];
 
   function fit() {
     const d = devicePixelRatio || 1;
@@ -196,6 +209,21 @@
       g.rect(-28, -12, 56, 24); g.fill(); g.stroke();
       g.fillStyle = '#4cc9f0'; for (let k = 0; k < 5; k++) g.fillRect(-22 + k * 8, -4, 6, 8);
       g.fillStyle = '#3ddc97'; g.fillRect(20, -6, 3, 3); g.fillRect(20, 2, 3, 3);
+    } else if (n.t === 'ap') { // ceiling access point
+      g.ellipse(0, 0, 18, 9, 0, 0, 7); g.fill(); g.stroke();
+      g.fillStyle = '#3ddc97'; g.beginPath(); g.arc(0, 0, 2.5, 0, 7); g.fill();
+    } else if (n.t === 'office') { // business building on a dedicated line
+      g.rect(-12, -15, 24, 30); g.fill(); g.stroke();
+      g.fillStyle = '#4cc9f0'; for (const [wx, wy] of [[-7,-10],[2,-10],[-7,-2],[2,-2],[-7,6],[2,6]]) g.fillRect(wx, wy, 5, 4);
+    } else if (n.t === 'phone') {
+      g.rect(-6, -11, 12, 22); g.fill(); g.stroke();
+      g.beginPath(); g.moveTo(-2, 8); g.lineTo(2, 8); g.stroke();
+    } else if (n.t === 'laptop') {
+      g.rect(-12, -10, 24, 15); g.fill(); g.stroke();
+      g.beginPath(); g.moveTo(-16, 9); g.lineTo(16, 9); g.stroke();
+    } else if (n.t === 'tablet') {
+      g.rect(-9, -12, 18, 24); g.fill(); g.stroke();
+      g.beginPath(); g.arc(0, 8, 1.5, 0, 7); g.stroke();
     } else if (n.t === 'splitter') {
       g.moveTo(-10, 8); g.lineTo(0, -9); g.lineTo(10, 8); g.closePath(); g.fill(); g.stroke();
     } else if (n.t === 'tower') {
@@ -215,11 +243,11 @@
     g.clearRect(0, 0, W, H);
     g.globalAlpha = narrow ? .5 : 1;
     // links
-    for (const [a, b, air] of E) {
+    for (const [a, b, kind] of E) {
       const [x1, y1] = pos(N[a]), [x2, y2] = pos(N[b]);
       g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2);
-      g.lineWidth = 1.5; g.strokeStyle = air ? 'rgba(123,92,255,.7)' : 'rgba(76,201,240,.3)';
-      g.setLineDash(air ? [6, 8] : []); g.lineDashOffset = -T * .03; g.stroke();
+      g.lineWidth = 1.5; g.strokeStyle = kind === 1 ? 'rgba(123,92,255,.7)' : kind === 2 ? 'rgba(61,220,151,.55)' : 'rgba(76,201,240,.3)';
+      g.setLineDash(kind === 1 ? [6, 8] : kind === 2 ? [3, 6] : []); g.lineDashOffset = -T * .03; g.stroke();
     }
     g.setLineDash([]);
     // packets: cyan going down to clients, green coming back up
@@ -236,12 +264,15 @@
     g.strokeStyle = `rgba(76,201,240,${.6 * (1 - ph)})`; g.lineWidth = 2;
     g.beginPath(); g.arc(cx, cy, (18 + ph * 70) * S, 0, 7); g.stroke();
     // radio waves from the towers
-    for (const id of ['ptp', 'sec']) {
+    for (const id of ['ptp', 'sec', 'ap']) {
       const [tx, ty] = pos(N[id]);
       for (let k = 0; k < 3; k++) {
         const q = (T / 1600 + k / 3) % 1;
         g.strokeStyle = `rgba(123,92,255,${1 - q})`; g.lineWidth = 1.5;
-        g.beginPath(); g.arc(tx, ty - 18 * S, (8 + q * 28) * S, Math.PI * 1.15, Math.PI * 1.85); g.stroke();
+        g.beginPath();
+        if (id === 'ap') g.arc(tx, ty + 6 * S, (14 + q * 28) * S, Math.PI * .15, Math.PI * .85); // AP radiates down to devices
+        else g.arc(tx, ty - 18 * S, (8 + q * 28) * S, Math.PI * 1.15, Math.PI * 1.85);
+        g.stroke();
       }
     }
     // billing + management servers: can be hosted in the cloud or on-prem
