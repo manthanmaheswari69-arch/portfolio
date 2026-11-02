@@ -148,17 +148,20 @@
     rad:  { x:.89, y:.34, t:'server',   l:'RADIUS · BILLING' },
     acs:  { x:.89, y:.48, t:'server',   l:'TR-069 ACS' },
     agg:  { x:.72, y:.56, t:'switch',   l:'AGG SWITCH · VLAN' },
-    olt:  { x:.88, y:.66, t:'switch',   l:'OLT' },
-    spl:  { x:.88, y:.78, t:'splitter', l:'SPLITTER' },
-    o1:   { x:.81, y:.90, t:'home',     l:'ONT' },
-    o2:   { x:.95, y:.90, t:'home',     l:'ONT' },
+    olt:  { x:.84, y:.66, t:'switch',   l:'OLT' },
+    spl:  { x:.84, y:.78, t:'splitter', l:'SPLITTER' },
+    o1:   { x:.68, y:.91, t:'home',     l:'ONT' },
+    o2:   { x:.755,y:.91, t:'home',     l:'ONT' },
+    o3:   { x:.83, y:.91, t:'home',     l:'ONT' },
+    o4:   { x:.905,y:.91, t:'home',     l:'ONT' },
+    o5:   { x:.98, y:.91, t:'home',     l:'ONT' },
     ptp:  { x:.60, y:.67, t:'tower',    l:'PtP BACKHAUL' },
     sec:  { x:.50, y:.78, t:'tower',    l:'PtMP SECTOR' },
     c1:   { x:.44, y:.91, t:'home',     l:'CPE' },
     c2:   { x:.58, y:.91, t:'home',     l:'CPE' },
   };
   // subscriber traffic: customers → access (fibre or wireless) → aggregation → BRAS (auth via RADIUS) → border → internet
-  const E = [['net','core'],['core','bras'],['bras','rad'],['bras','acs'],['bras','agg'],['agg','olt'],['olt','spl'],['spl','o1'],['spl','o2'],
+  const E = [['net','core'],['core','bras'],['bras','rad'],['bras','acs'],['bras','agg'],['agg','olt'],['olt','spl'],['spl','o1'],['spl','o2'],['spl','o3'],['spl','o4'],['spl','o5'],
              ['agg','ptp'],['ptp','sec',1],['sec','c1',1],['sec','c2',1]]; // 1 = wireless link
   const P = E.flatMap((e, i) => [0, 1, 2].map(() => ({ i, t: Math.random(), v: .002 + Math.random() * .004, up: Math.random() < .4 })));
   let W, H, S, narrow;
