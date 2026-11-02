@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Manthan Aagal — Network Engineer</title>
+<meta name="description" content="Portfolio of Manthan Aagal, Network Engineer in Ahmedabad: ISP networks and MikroTik.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>M</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#05080f; --card:rgba(17,28,45,.6); --line:rgba(76,201,240,.2); --text:#e6edf7; --muted:#8fa1bb; --accent:#4cc9f0; --accent2:#7b5cff; --ok:#3ddc97;
+    --mono:"JetBrains Mono",ui-monospace,Consolas,monospace; --display:"Anton",Impact,"Arial Narrow",sans-serif; }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { position:relative; margin:0; background:var(--bg); color:var(--text); font:16px/1.65 "Space Grotesk",system-ui,"Segoe UI",sans-serif; overflow-x:hidden; }
+  a { color:var(--accent); }
+  .wrap { max-width:920px; margin:0 auto; padding:0 16px; }
+  nav { position:sticky; top:0; z-index:10; display:flex; gap:22px; justify-content:flex-end; padding:16px; flex-wrap:wrap; margin:0 -16px;
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); background:rgba(5,8,15,.45); border-bottom:1px solid var(--line); }
+  nav a { color:var(--text); text-decoration:none; font-family:var(--mono); font-size:13px; }
+  nav a:hover, nav a:focus { color:var(--accent2); }
+
+  /* fixed full-screen ISP topology animation (drawn in the script below) */
+  .scene { position:fixed; inset:0; width:100%; height:100%; z-index:-1; display:block;
+    background:
+      radial-gradient(700px 500px at 75% 30%, rgba(76,201,240,.14), transparent 70%),
+      radial-gradient(600px 500px at 10% 90%, rgba(123,92,255,.14), transparent 70%),
+      linear-gradient(rgba(76,201,240,.045) 1px, transparent 1px) 0 0/44px 44px,
+      linear-gradient(90deg, rgba(76,201,240,.045) 1px, transparent 1px) 0 0/44px 44px,
+      var(--bg); }
+
+  header { min-height:calc(100vh - 56px); padding:11vh 0 40vh; }
+  .eyebrow { font-family:var(--mono); color:var(--ok); font-size:14px; text-shadow:0 0 8px rgba(61,220,151,.6); }
+  .eyebrow::after { content:"_"; animation:blink 1s steps(1) infinite; }
+  h1 { font-family:var(--display); font-weight:400; text-transform:uppercase; font-size:clamp(52px,11vw,120px); line-height:.92; margin:14px 0 18px;
+    color:#fff; text-shadow:0 0 24px rgba(76,201,240,.6); }
+  h1 span { display:block; font-size:.42em; margin-top:10px; color:var(--accent); text-shadow:0 0 14px rgba(76,201,240,.5); }
+  .status { display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:13px; color:var(--text);
+    border:1px solid rgba(255,255,255,.25); background:rgba(5,8,15,.35); border-radius:999px; padding:6px 14px; margin-bottom:24px; }
+  .status::before { content:""; width:8px; height:8px; border-radius:50%; background:var(--ok); box-shadow:0 0 10px var(--ok); animation:pulse 2s infinite; }
+  header .lead { color:#fff; text-shadow:0 2px 10px rgba(5,8,15,.9); }
+  h2 { font-family:var(--display); font-weight:400; text-transform:uppercase; letter-spacing:.03em; font-size:40px; margin:0 0 24px;
+    color:#fff; text-shadow:0 0 18px rgba(76,201,240,.5); }
+  /* glass panels so text stays readable over the fixed scene */
+  section, footer { background:rgba(5,8,15,.72); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid var(--line); border-radius:18px; }
+  section { padding:36px 28px; margin-bottom:28px; }
+  .lead { color:var(--muted); font-size:18px; max-width:640px; }
+  .btn { display:inline-block; margin:10px 12px 0 0; padding:13px 24px; border-radius:6px; border:2px solid var(--accent); color:var(--accent); background:rgba(5,8,15,.4);
+    text-decoration:none; font-weight:700; text-transform:uppercase; letter-spacing:.05em; transition:transform .2s, box-shadow .2s; }
+  .btn:hover, .btn:focus { transform:translateY(-2px); box-shadow:0 0 28px rgba(76,201,240,.6); }
+  .btn.primary { background:linear-gradient(90deg,var(--accent),var(--accent2)); border-color:transparent; color:#fff; }
+  .tags { display:flex; flex-wrap:wrap; gap:10px; list-style:none; padding:0; margin:0 0 24px; }
+  .tags li { background:var(--card); border:1px solid var(--line); padding:7px 15px; border-radius:6px; font-size:14px; font-family:var(--mono); transition:border-color .2s, color .2s, box-shadow .2s; }
+  .tags li:hover { border-color:var(--accent); color:#fff; box-shadow:0 0 16px rgba(76,201,240,.45); }
+  h3.group { font-family:var(--mono); font-size:13px; color:var(--accent2); margin:0 0 12px; font-weight:600; letter-spacing:.05em; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px; }
+  .card { position:relative; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:24px; margin-bottom:16px;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); transition:transform .25s, border-color .25s, box-shadow .25s; }
+  .card:hover { transform:translateY(-4px); border-color:var(--accent); box-shadow:0 0 36px rgba(76,201,240,.25); }
+  .card h3 { margin:0 0 4px; font-size:19px; }
+  .meta { color:var(--accent2); font-family:var(--mono); font-size:13px; margin:0 0 12px; }
+  .card ul { color:var(--muted); margin:0; padding-left:20px; }
+  .card li::marker { color:var(--accent); }
+  .card p { color:var(--muted); margin:0; }
+  footer { padding:20px 28px; margin-bottom:28px; color:var(--muted); font-family:var(--mono); font-size:13px; }
+  .reveal { opacity:0; transform:translateY(24px); transition:opacity .7s, transform .7s; }
+  .reveal.in { opacity:1; transform:none; }
+  @keyframes blink { 50% { opacity:0; } }
+  @keyframes pulse { 50% { opacity:.4; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } .reveal { opacity:1; transform:none; } }
+</style>
+</head>
+<body>
+<canvas id="topo" class="scene" aria-hidden="true"></canvas>
+<div class="wrap">
+  <nav aria-label="Sections"><a href="#about">About</a><a href="#experience">Experience</a><a href="#skills">Skills</a><a href="#certifications">Certifications</a><a href="#contact">Contact</a></nav>
+
+  <header>
+    <div class="status">Open to network engineering roles</div>
+    <div class="eyebrow">$ ping manthan-aagal</div>
+    <h1>Manthan Aagal<br><span>Network Engineer</span></h1>
+    <p class="lead">Certified network engineer in Ahmedabad, working on ISP infrastructure and MikroTik networks.</p>
+    <a class="btn primary" href="#contact">Contact me</a>
+    <a class="btn" href="https://www.linkedin.com/in/manthan-aagal">LinkedIn</a>
+  </header>
+
+  <section id="about">
+    <h2>About</h2>
+    <p class="lead">I configure routers and wireless networks and tune network performance for maximum uptime and reliability. I'm known for analytical problem-solving, fast incident response and clear documentation, and I focus on secure, scalable and efficient network solutions.</p>
+  </section>
+
+  <section id="experience">
+    <h2>Experience</h2>
+    <article class="card">
+      <h3>Network Engineer — PHP Infosec</h3>
+      <p class="meta">Ahmedabad, Gujarat · Dec 2024 – Present</p>
+      <ul>
+        <li>Manage ISP network infrastructure with high uptime and performance.</li>
+        <li>Configure MikroTik routers, PPPoE servers, VLANs, routing and firewall rules.</li>
+        <li>Monitor the network, troubleshoot and resolve incidents.</li>
+        <li>Deploy and optimise wireless PtP/PtMP links and FTTH setups.</li>
+        <li>Implement security policies, VPNs and bandwidth management.</li>
+      </ul>
+    </article>
+  </section>
+
+  <section id="skills">
+    <h2>Skills</h2>
+    <h3 class="group">Networking (CCNA 200-301 training)</h3>
+    <ul class="tags">
+      <li>MikroTik</li><li>PPPoE</li><li>FTTH</li><li>PtP / PtMP wireless</li><li>VLAN, VTP, STP</li><li>LACP / PAgP</li>
+      <li>Static, RIP, OSPF</li><li>Firewall &amp; NAT</li><li>VPN</li><li>Bandwidth management</li><li>ACLs</li><li>AAA (TACACS+, RADIUS)</li><li>TR-069 (ACS / CPE management)</li><li>SSH</li><li>IPv6</li><li>Cisco router &amp; switch configuration</li>
+    </ul>
+    <h3 class="group">Languages</h3>
+    <ul class="tags"><li>English</li><li>Hindi</li><li>Gujarati</li></ul>
+  </section>
+
+  <section id="certifications">
+    <h2>Certifications &amp; Education</h2>
+    <div class="grid">
+      <article class="card"><h3>Network &amp; Network Security Associate</h3><p>IONX Institute · Feb 2025</p></article>
+      <article class="card"><h3>Bachelor of Commerce</h3><p>National Commerce College · 2022 (pursuing)</p></article>
+    </div>
+  </section>
+
+  <section id="contact">
+    <h2>Contact</h2>
+    <p class="lead">Ahmedabad, Gujarat. Open to network engineering roles and projects.</p>
+    <a class="btn primary" href="mailto:manthanaagal067@gmail.com">manthanaagal067@gmail.com</a>
+    <a class="btn" href="https://www.linkedin.com/in/manthan-aagal">LinkedIn</a>
+  </section>
+
+  <footer>© 2026 Manthan Aagal · built with zero packet loss</footer>
+</div>
+<script>
+  // fade sections in as they scroll into view
+  const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('in')), { threshold:.15 });
+  document.querySelectorAll('section').forEach(s => { s.classList.add('reveal'); io.observe(s); });
+
+  // ISP topology: internet → core → distribution → access, with packets flowing on every link
+  const cv = document.getElementById('topo'), g = cv.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const N = { // x,y as fractions of the screen; kept to the right so the hero text stays clear
+    net:  { x:.78, y:.10, t:'cloud',    l:'INTERNET' },
+    core: { x:.78, y:.25, t:'router',   l:'BORDER ROUTER' },
+    bras: { x:.72, y:.41, t:'mikrotik', l:'MIKROTIK · PPPoE' },
+    rad:  { x:.89, y:.34, t:'server',   l:'RADIUS · BILLING' },
+    acs:  { x:.89, y:.48, t:'server',   l:'TR-069 ACS' },
+    agg:  { x:.72, y:.56, t:'switch',   l:'AGG SWITCH · VLAN' },
+    olt:  { x:.88, y:.66, t:'switch',   l:'OLT' },
+    spl:  { x:.88, y:.78, t:'splitter', l:'SPLITTER' },
+    o1:   { x:.81, y:.90, t:'home',     l:'ONT' },
+    o2:   { x:.95, y:.90, t:'home',     l:'ONT' },
+    ptp:  { x:.60, y:.67, t:'tower',    l:'PtP BACKHAUL' },
+    sec:  { x:.50, y:.78, t:'tower',    l:'PtMP SECTOR' },
+    c1:   { x:.44, y:.91, t:'home',     l:'CPE' },
+    c2:   { x:.58, y:.91, t:'home',     l:'CPE' },
+  };
+  // subscriber traffic: customers → access (fibre or wireless) → aggregation → BRAS (auth via RADIUS) → border → internet
+  const E = [['net','core'],['core','bras'],['bras','rad'],['bras','acs'],['bras','agg'],['agg','olt'],['olt','spl'],['spl','o1'],['spl','o2'],
+             ['agg','ptp'],['ptp','sec',1],['sec','c1',1],['sec','c2',1]]; // 1 = wireless link
+  const P = E.flatMap((e, i) => [0, 1, 2].map(() => ({ i, t: Math.random(), v: .002 + Math.random() * .004, up: Math.random() < .4 })));
+  let W, H, S, narrow;
+  const pos = n => [(narrow ? .04 + (n.x - .4) / .6 * .92 : .6 + (n.x - .46) / .51 * .37) * W, n.y * H];
+
+  function fit() {
+    const d = devicePixelRatio || 1;
+    W = innerWidth; H = innerHeight; narrow = W < 760;
+    cv.width = W * d; cv.height = H * d; g.setTransform(d, 0, 0, d, 0, 0);
+    S = Math.max(.7, Math.min(1.2, Math.min(W, H) / 800));
+  }
+
+  function node(n, x, y) {
+    g.save(); g.translate(x, y); g.scale(S, S);
+    g.lineWidth = 1.6; g.strokeStyle = '#4cc9f0'; g.fillStyle = 'rgba(8,16,32,.92)';
+    g.shadowColor = 'rgba(76,201,240,.8)'; g.shadowBlur = 14;
+    g.beginPath();
+    if (n.t === 'router') {
+      g.arc(0, 0, 16, 0, 7); g.fill(); g.stroke();
+      g.beginPath(); g.moveTo(-8, 0); g.lineTo(8, 0); g.moveTo(0, -8); g.lineTo(0, 8); g.stroke();
+    } else if (n.t === 'switch') {
+      g.rect(-24, -9, 48, 18); g.fill(); g.stroke();
+      g.fillStyle = '#3ddc97'; for (let k = 0; k < 6; k++) g.fillRect(-18 + k * 7, -2, 4, 4);
+    } else if (n.t === 'server') {
+      g.rect(-12, -16, 24, 32); g.fill(); g.stroke();
+      g.beginPath(); g.moveTo(-12, -5); g.lineTo(12, -5); g.moveTo(-12, 6); g.lineTo(12, 6); g.stroke();
+      g.fillStyle = '#3ddc97'; g.fillRect(5, -12, 3, 3); g.fillRect(5, -1, 3, 3); g.fillRect(5, 10, 3, 3);
+    } else if (n.t === 'cloud') {
+      g.arc(-13, 5, 10, Math.PI * .5, Math.PI * 1.5); g.arc(0, -4, 14, Math.PI * 1.05, Math.PI * 1.95); g.arc(14, 5, 10, Math.PI * 1.5, Math.PI * .5);
+      g.closePath(); g.fill(); g.stroke();
+    } else if (n.t === 'mikrotik') { // rack router: ports + status LEDs
+      g.rect(-28, -12, 56, 24); g.fill(); g.stroke();
+      g.fillStyle = '#4cc9f0'; for (let k = 0; k < 5; k++) g.fillRect(-22 + k * 8, -4, 6, 8);
+      g.fillStyle = '#3ddc97'; g.fillRect(20, -6, 3, 3); g.fillRect(20, 2, 3, 3);
+    } else if (n.t === 'splitter') {
+      g.moveTo(-10, 8); g.lineTo(0, -9); g.lineTo(10, 8); g.closePath(); g.fill(); g.stroke();
+    } else if (n.t === 'tower') {
+      g.moveTo(0, -18); g.lineTo(-10, 16); g.moveTo(0, -18); g.lineTo(10, 16); g.moveTo(-5, 0); g.lineTo(5, 0); g.stroke();
+    } else { // home
+      g.moveTo(-12, 14); g.lineTo(-12, -2); g.lineTo(0, -13); g.lineTo(12, -2); g.lineTo(12, 14); g.closePath(); g.fill(); g.stroke();
+    }
+    g.restore();
+    // label on a dark chip so it reads over links and packets
+    g.font = `600 ${Math.round(12 * S)}px "JetBrains Mono", monospace`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const w = g.measureText(n.l).width + 12 * S, ly = y + 34 * S;
+    g.fillStyle = 'rgba(5,8,15,.85)'; g.fillRect(x - w / 2, ly - 9 * S, w, 18 * S);
+    g.fillStyle = '#d6ecf7'; g.fillText(n.l, x, ly);
+  }
+
+  function frame(T) {
+    g.clearRect(0, 0, W, H);
+    g.globalAlpha = narrow ? .5 : 1;
+    // links
+    for (const [a, b, air] of E) {
+      const [x1, y1] = pos(N[a]), [x2, y2] = pos(N[b]);
+      g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2);
+      g.lineWidth = 1.5; g.strokeStyle = air ? 'rgba(123,92,255,.7)' : 'rgba(76,201,240,.3)';
+      g.setLineDash(air ? [6, 8] : []); g.lineDashOffset = -T * .03; g.stroke();
+    }
+    g.setLineDash([]);
+    // packets: cyan going down to clients, green coming back up
+    for (const p of P) {
+      if (!reduce) p.t = (p.t + p.v) % 1;
+      const [a, b] = E[p.i], [x1, y1] = pos(N[a]), [x2, y2] = pos(N[b]), k = p.up ? 1 - p.t : p.t;
+      const c = p.up ? '#3ddc97' : '#4cc9f0';
+      g.shadowColor = c; g.shadowBlur = 12; g.fillStyle = c;
+      g.beginPath(); g.arc(x1 + (x2 - x1) * k, y1 + (y2 - y1) * k, 2.6 * S, 0, 7); g.fill();
+    }
+    g.shadowBlur = 0;
+    // core heartbeat ring
+    const [cx, cy] = pos(N.core), ph = (T / 2400) % 1;
+    g.strokeStyle = `rgba(76,201,240,${.6 * (1 - ph)})`; g.lineWidth = 2;
+    g.beginPath(); g.arc(cx, cy, (18 + ph * 70) * S, 0, 7); g.stroke();
+    // radio waves from the towers
+    for (const id of ['ptp', 'sec']) {
+      const [tx, ty] = pos(N[id]);
+      for (let k = 0; k < 3; k++) {
+        const q = (T / 1600 + k / 3) % 1;
+        g.strokeStyle = `rgba(123,92,255,${1 - q})`; g.lineWidth = 1.5;
+        g.beginPath(); g.arc(tx, ty - 18 * S, (8 + q * 28) * S, Math.PI * 1.15, Math.PI * 1.85); g.stroke();
+      }
+    }
+    // billing + management servers: can be hosted in the cloud or on-prem
+    const [rx, ry] = pos(N.rad), [, ay] = pos(N.acs), bw = 72 * S;
+    g.setLineDash([5, 5]); g.strokeStyle = 'rgba(123,92,255,.8)'; g.lineWidth = 1.2;
+    g.strokeRect(rx - bw, ry - 34 * S, bw * 2, ay - ry + 88 * S); g.setLineDash([]);
+    g.font = `600 ${Math.round(11 * S)}px "JetBrains Mono", monospace`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = '#b9a8ff'; g.fillText('CLOUD or LOCAL', rx, ry - 44 * S);
+    for (const id in N) node(N[id], ...pos(N[id]));
+    g.globalAlpha = 1;
+    if (!reduce) requestAnimationFrame(frame);
+  }
+
+  addEventListener('resize', () => { fit(); if (reduce) frame(0); });
+  fit(); requestAnimationFrame(frame);
+</script>
+</body>
+</html>
