@@ -33,7 +33,7 @@
   header { min-height:calc(100vh - 56px); padding:11vh 0 40vh; }
   .eyebrow { font-family:var(--mono); color:var(--ok); font-size:14px; text-shadow:0 0 8px rgba(61,220,151,.6); }
   .eyebrow::after { content:"_"; animation:blink 1s steps(1) infinite; }
-  h1 { font-family:var(--display); font-weight:400; text-transform:uppercase; font-size:clamp(52px,11vw,120px); line-height:.92; margin:14px 0 18px;
+  h1 { font-family:var(--display); font-weight:400; text-transform:uppercase; font-size:clamp(36px,11vw,120px); line-height:.92; margin:14px 0 18px;
     color:#fff; text-shadow:0 0 24px rgba(76,201,240,.6); }
   h1 span { display:block; font-size:.42em; margin-top:10px; color:var(--accent); text-shadow:0 0 14px rgba(76,201,240,.5); }
   .status { display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:13px; color:var(--text);
@@ -144,8 +144,14 @@
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const N = { // x,y as fractions of a desktop screen; top-left stays clear for the hero text
     net:  { x:.79, y:.10, t:'cloud',    l:'ISP 1 · MAIN WAN' },
-    isp2: { x:.66, y:.12, t:'cloud',    l:'ISP 2 · BACKUP WAN' },
+    isp2: { x:.93, y:.15, t:'cloud',    l:'ISP 2 · BACKUP WAN' },
     ll:   { x:.955,y:.62, t:'office',   l:'LEASED LINE' },
+    rmt:  { x:.61, y:.09, t:'mikrotik', l:'MIKROTIK · REMOTE' },
+    isp3: { x:.46, y:.12, t:'cloud',    l:'ISP 3 · LOCAL' },
+    r1:   { x:.50, y:.20, t:'home',     l:'USER' },
+    r2:   { x:.555,y:.20, t:'home',     l:'USER' },
+    r3:   { x:.61, y:.20, t:'home',     l:'USER' },
+    r4:   { x:.665,y:.20, t:'home',     l:'USER' },
     core: { x:.79, y:.25, t:'mikrotik', l:'MIKROTIK · BORDER' },
     bras: { x:.79, y:.41, t:'mikrotik', l:'MIKROTIK · PPPoE' },
     rad:  { x:.91, y:.34, t:'server',   l:'RADIUS · BILLING' },
@@ -174,17 +180,18 @@
   };
   // subscriber traffic: fibre users → OLT → MikroTik PPPoE (auth via RADIUS) → border → internet;
   // a second MikroTik takes internet from the PPPoE MikroTik and serves its own LAN + wireless users
-  const E = [['net','core'],['isp2','core',2],['core','bras'],['bras','ll'],['bras','rad'],['bras','acs'],['bras','olt'],['bras','agg'],['agg','olt2'],['olt2','u1'],['olt2','u2'],['olt','spl'],['spl','o1'],['spl','o2'],['spl','o3'],['spl','o4'],['spl','o5'],
+  const E = [['net','core'],['isp2','core',2],['isp3','rmt'],['rmt','core',3],['rmt','r1'],['rmt','r2'],['rmt','r3'],['rmt','r4'],['core','bras'],['bras','ll'],['bras','rad'],['bras','acs'],['bras','olt'],['bras','agg'],['agg','olt2'],['olt2','u1'],['olt2','u2'],['olt','spl'],['spl','o1'],['spl','o2'],['spl','o3'],['spl','o4'],['spl','o5'],
              ['agg','ptp'],['ptp','sec',1],['sec','c1',1],['sec','c2',1],
-             ['bras','hs'],['hs','hsw'],['hsw','ap'],['ap','ph',1],['ap','lp',1],['ap','tb',1]]; // 1 = wireless link, 2 = backup WAN (failover)
+             ['bras','hs'],['hs','hsw'],['hsw','ap'],['ap','ph',1],['ap','lp',1],['ap','tb',1]]; // 1 = wireless link, 2 = backup WAN (failover), 3 = VPN tunnel (no cable)
   const P = E.flatMap((e, i) => [0, 1, 2].map(() => ({ i, t: Math.random(), v: .002 + Math.random() * .004, up: Math.random() < .4 })));
-  let W, H, S, narrow, navH;
+  let W, H, VW, S, narrow, navH;
   // on phones the menu wraps to two lines, so start the map below it
-  const pos = n => [(narrow ? .05 + (n.x - .34) / .64 * .9 : n.x) * W, narrow ? navH + n.y * (H - navH) : n.y * H];
+  const pos = n => [(narrow ? .05 + (n.x - .34) / .64 * .9 : n.x) * VW, narrow ? navH + n.y * (H - navH) : n.y * H];
 
   function fit() {
     const d = devicePixelRatio || 1;
-    W = innerWidth; H = innerHeight; narrow = W < 760; navH = document.querySelector('nav').offsetHeight;
+    // canvas runs under the scrollbar; the map is laid out in the visible width VW
+    W = innerWidth; H = innerHeight; VW = document.documentElement.clientWidth; narrow = W < 760; navH = document.querySelector('nav').offsetHeight;
     cv.width = W * d; cv.height = H * d; g.setTransform(d, 0, 0, d, 0, 0);
     S = Math.max(.7, Math.min(1.2, Math.min(W, H) / 800));
   }
@@ -237,8 +244,9 @@
     // label on a dark chip so it reads over links and packets
     g.font = `600 ${Math.round(12 * S)}px "JetBrains Mono", monospace`; g.textAlign = 'center'; g.textBaseline = 'middle';
     const w = g.measureText(n.l).width + 12 * S, ly = y + 34 * S;
-    g.fillStyle = 'rgba(5,8,15,.85)'; g.fillRect(x - w / 2, ly - 9 * S, w, 18 * S);
-    g.fillStyle = '#d6ecf7'; g.fillText(n.l, x, ly);
+    const lx = Math.min(Math.max(x, w / 2 + 2), VW - w / 2 - 2); // keep the label on screen
+    g.fillStyle = 'rgba(5,8,15,.85)'; g.fillRect(lx - w / 2, ly - 9 * S, w, 18 * S);
+    g.fillStyle = '#d6ecf7'; g.fillText(n.l, lx, ly);
   }
 
   function frame(T) {
@@ -248,8 +256,15 @@
     for (const [a, b, kind] of E) {
       const [x1, y1] = pos(N[a]), [x2, y2] = pos(N[b]);
       g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2);
-      g.lineWidth = 1.5; g.strokeStyle = kind === 1 ? 'rgba(123,92,255,.7)' : kind === 2 ? 'rgba(61,220,151,.55)' : 'rgba(76,201,240,.3)';
-      g.setLineDash(kind === 1 ? [6, 8] : kind === 2 ? [3, 6] : []); g.lineDashOffset = -T * .03; g.stroke();
+      g.lineWidth = kind === 3 ? 2.5 : 1.5;
+      g.strokeStyle = kind === 1 ? 'rgba(123,92,255,.7)' : kind === 2 ? 'rgba(61,220,151,.55)' : kind === 3 ? 'rgba(61,220,151,.9)' : 'rgba(76,201,240,.3)';
+      g.setLineDash(kind === 1 ? [6, 8] : kind === 2 ? [3, 6] : kind === 3 ? [10, 6] : []); g.lineDashOffset = -T * .03; g.stroke();
+      if (kind === 3) { // tunnel label at the middle of the link
+        g.setLineDash([]); g.font = `600 ${Math.round(11 * S)}px "JetBrains Mono", monospace`; g.textAlign = 'center'; g.textBaseline = 'middle';
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2 - 12 * S, tw = g.measureText('VPN TUNNEL').width + 10 * S;
+        g.fillStyle = 'rgba(5,8,15,.9)'; g.fillRect(mx - tw / 2, my - 8 * S, tw, 16 * S);
+        g.fillStyle = '#3ddc97'; g.fillText('VPN TUNNEL', mx, my);
+      }
     }
     g.setLineDash([]);
     // packets: cyan going down to clients, green coming back up
